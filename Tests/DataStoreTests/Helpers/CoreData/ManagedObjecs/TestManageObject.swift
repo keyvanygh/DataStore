@@ -37,8 +37,8 @@ extension TestManageObject1 {
         return model
     }
     
-    static func item(in store: CoreDataStore<TestManageObject1>) throws -> TestManageObject1 {
-        let item = try store.item()
+    static func item(in store: CoreDataStore<TestManageObject1>) async throws -> TestManageObject1 {
+        let item = try await store.item()
         item.stringTestAttribute = "a-test-string-attribute"
         return item
     }

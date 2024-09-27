@@ -3,111 +3,112 @@ import DataStore
 
 final class CoreDataStoreTests: XCTestCase, DataStoreSpecs {
     
-    func test_load_returnsFoundItemOnNonEmptyCache() throws {
+    func test_load_returnsFoundItemOnNonEmptyCache() async throws {
         let sut: CoreDataStore<TestManageObject1> = makeSUT()
-        let savedItem = try TestManageObject1.item(in: sut)
-        let notSavedItem = try TestManageObject1.item(in: sut)
-        try sut.save(savedItem)
+        let savedItem = try await TestManageObject1.item(in: sut)
+        let notSavedItem = try await TestManageObject1.item(in: sut)
+        try await sut.save(savedItem)
         
-        let loadedItem = try sut.load()
+        let loadedItem = try await sut.load()
         
         XCTAssertNotEqual(notSavedItem, loadedItem)
         XCTAssertEqual(savedItem, loadedItem)
     }
     
-    func test_load_hasNoSideEffectsOnNonEmptyCache() throws {
+    func test_load_hasNoSideEffectsOnNonEmptyCache() async throws {
         let sut: CoreDataStore<TestManageObject1> = makeSUT()
-        XCTAssertThrowsError(try sut.load())
-        XCTAssertThrowsError(try sut.load())
+        await XCTAssertThrowsErrorAsync(try await sut.load())
+        await XCTAssertThrowsErrorAsync(try await sut.load())
     }
     
-    func test_save_doseNotThrowsOnEmptyCache() throws {
+    func test_save_doseNotThrowsOnEmptyCache() async throws {
         let sut: CoreDataStore<TestManageObject1> = makeSUT()
-        let itemToSave = try TestManageObject1.item(in: sut)
-        XCTAssertNoThrow(try sut.save(itemToSave))
-    }
-    
-    func test_save_doseNotThrowsOnNonEmptyCache() throws {
-        let sut: CoreDataStore<TestManageObject1> = makeSUT()
-        let savedItem = try TestManageObject1.item(in: sut)
-        let itemToSave = try TestManageObject1.item(in: sut)
-        try sut.save(savedItem)
-        try sut.save(itemToSave)
+        let itemToSave = try await TestManageObject1.item(in: sut)
         
-        XCTAssertNoThrow(try sut.save(itemToSave))
+        await XCTAssertNoThrowAsync(try await sut.save(itemToSave))
     }
     
-    func test_save_overridesPreviouslyInsertedCacheValues() throws {
+    func test_save_doseNotThrowsOnNonEmptyCache() async throws {
         let sut: CoreDataStore<TestManageObject1> = makeSUT()
-        let previouslySavedItem = try TestManageObject1.item(in: sut)
-        let latestSaveItem = try TestManageObject1.item(in: sut)
-        try sut.save(previouslySavedItem)
-        try sut.save(latestSaveItem)
+        let savedItem = try await TestManageObject1.item(in: sut)
+        let itemToSave = try await TestManageObject1.item(in: sut)
+        try await sut.save(savedItem)
+        try await sut.save(itemToSave)
         
-        let loadedItem = try sut.load()
+        await XCTAssertNoThrowAsync(try await sut.save(itemToSave))
+    }
+    
+    func test_save_overridesPreviouslyInsertedCacheValues() async throws {
+        let sut: CoreDataStore<TestManageObject1> = makeSUT()
+        let previouslySavedItem = try await TestManageObject1.item(in: sut)
+        let latestSaveItem = try await TestManageObject1.item(in: sut)
+        try await sut.save(previouslySavedItem)
+        try await sut.save(latestSaveItem)
+        
+        let loadedItem = try await sut.load()
         
         XCTAssertNotEqual(previouslySavedItem, loadedItem)
         XCTAssertEqual(latestSaveItem, loadedItem)
 
     }
     
-    func test_clear_doseNotThrowsOnEmptyCache() throws {
+    func test_clear_doseNotThrowsOnEmptyCache() async throws {
         let sut: CoreDataStore<TestManageObject1> = makeSUT()
         
-        XCTAssertNoThrow(try sut.clear())
+        await XCTAssertNoThrowAsync(try await sut.clear())
     }
     
-    func test_clear_hasNoSideEffectsOnEmptyCache() throws {
+    func test_clear_hasNoSideEffectsOnEmptyCache() async throws {
         let sut: CoreDataStore<TestManageObject1> = makeSUT()
         
-        XCTAssertNoThrow(try sut.clear())
-        XCTAssertThrowsError(try sut.load())
+        await XCTAssertNoThrowAsync(try await sut.clear())
+        await XCTAssertThrowsErrorAsync(try await sut.load())
     }
     
-    func test_clear_doseNotThrowsOnNonEmptyCache() throws {
+    func test_clear_doseNotThrowsOnNonEmptyCache() async throws {
         let sut: CoreDataStore<TestManageObject1> = makeSUT()
-        let itemToSave = try TestManageObject1.item(in: sut)
-        try sut.save(itemToSave)
+        let itemToSave = try await TestManageObject1.item(in: sut)
+        try await sut.save(itemToSave)
         
-        XCTAssertNoThrow(try sut.clear())
+        await XCTAssertNoThrowAsync(try await sut.clear())
     }
     
-    func test_clear_clearsPreviouslyInsertedCache() throws {
+    func test_clear_clearsPreviouslyInsertedCache() async throws {
         let sut: CoreDataStore<TestManageObject1> = makeSUT()
-        let itemToSave = try TestManageObject1.item(in: sut)
-        try sut.save(itemToSave)
+        let itemToSave = try await TestManageObject1.item(in: sut)
+        try await sut.save(itemToSave)
         
-        try sut.clear()
+        try await sut.clear()
         
-        XCTAssertThrowsError(try sut.load())
+        await XCTAssertThrowsErrorAsync( try await sut.load())
     }
     
-    func test_storeSideEffects_runSerially() throws {
+    func test_storeSideEffects_runSerially() async throws {
         
     }
     
-    func test_instance_throwsOnInvalidItem() throws {
+    func test_instance_throwsOnInvalidItem() async throws {
         let notTestModel = TestManageObject2.make()
         let sut: CoreDataStore<TestManageObject1> = makeSUT(container: .testContainer(with: notTestModel))
-        XCTAssertThrowsError(try sut.item())
+        await XCTAssertThrowsErrorAsync(try await sut.item())
     }
     
-    func test_load_throwsOnEmptyStore() throws {
+    func test_load_throwsOnEmptyStore() async throws {
         let sut: CoreDataStore<TestManageObject1> = makeSUT()
-        XCTAssertThrowsError(try sut.load())
+        await XCTAssertThrowsErrorAsync(try await sut.load())
     }
     
-    func test_save_canSaveTwoDiffrentObjectInOnContainer() throws {
+    func test_save_canSaveTwoDiffrentObjectInOnContainer() async throws {
         let container = NSPersistentContainer.testContainer()
         let sut: CoreDataStore<TestManageObject1> = makeSUT(container: container)
         let sut2: CoreDataStore<TestManageObject2> = makeSUT(container: container)
-        let savedItem = try TestManageObject1.item(in: sut)
-        let savedItem2 = try TestManageObject2.item(in: sut2)
-        try sut.save(savedItem)
-        try sut2.save(savedItem2)
+        let savedItem = try await TestManageObject1.item(in: sut)
+        let savedItem2 = try await TestManageObject2.item(in: sut2)
+        try await sut.save(savedItem)
+        try await sut2.save(savedItem2)
         
-        let loadedItem = try sut.load()
-        let loadedItem2 = try sut2.load()
+        let loadedItem = try await sut.load()
+        let loadedItem2 = try await  sut2.load()
         
         XCTAssertEqual(savedItem, loadedItem)
         XCTAssertEqual(savedItem2, loadedItem2)
@@ -115,5 +116,68 @@ final class CoreDataStoreTests: XCTestCase, DataStoreSpecs {
     
     private func makeSUT<Item>(container: NSPersistentContainer = .testContainer()) -> CoreDataStore<Item> {
         return CoreDataStore<Item>(container: container)
+    }
+}
+
+func assertThrowsAsyncError<T>(
+    _ expression: @autoclosure () async throws -> T,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line,
+    _ errorHandler: (_ error: Error) -> Void = { _ in }
+) async {
+    do {
+        _ = try await expression()
+        // expected error to be thrown, but it was not
+        let customMessage = message()
+        if customMessage.isEmpty {
+            XCTFail("Asynchronous call did not throw an error.", file: file, line: line)
+        } else {
+            XCTFail(customMessage, file: file, line: line)
+        }
+    } catch {
+        errorHandler(error)
+    }
+}
+
+func XCTAssertThrowsErrorAsync<T>(
+    _ expression: @autoclosure () async throws -> T,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line,
+    _ errorHandler: (_ error: Error) -> Void = { _ in }
+) async {
+    do {
+        _ = try await expression()
+        // An error was expected, but the async function did not throw one
+        let customMessage = message()
+        if customMessage.isEmpty {
+            XCTFail("Expected error to be thrown, but no error was thrown.", file: file, line: line)
+        } else {
+            XCTFail(customMessage, file: file, line: line)
+        }
+    } catch {
+        // An error was thrown, pass it to the errorHandler for further checks
+        errorHandler(error)
+    }
+}
+
+func XCTAssertNoThrowAsync<T>(
+    _ expression: @autoclosure () async throws -> T,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) async {
+    do {
+        _ = try await expression()
+        // No error was thrown, which is expected
+    } catch {
+        // An unexpected error was thrown
+        let customMessage = message()
+        if customMessage.isEmpty {
+            XCTFail("Asynchronous call threw an unexpected error: \(error).", file: file, line: line)
+        } else {
+            XCTFail(customMessage, file: file, line: line)
+        }
     }
 }

@@ -9,7 +9,7 @@ import Foundation
 public protocol DataStore {
     associatedtype Item
     
-    func load() throws -> Item
-    func save(_ item: Item) throws
-    func clear() throws
+    func load() async throws -> Item
+    func save(_ item: Item) async throws
+    func clear() async throws
 }
