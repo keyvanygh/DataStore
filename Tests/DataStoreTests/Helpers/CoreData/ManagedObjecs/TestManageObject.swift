@@ -9,7 +9,7 @@ import CoreData
 import DataStore
 
 @objc(TestManageObject1)
-class TestManageObject1: NSManagedObject {
+final class TestManageObject1: NSManagedObject {
     @NSManaged var stringTestAttribute: String
 }
 
@@ -36,10 +36,49 @@ extension TestManageObject1 {
         
         return model
     }
+}
+
+struct LocalTestModel: Equatable {
+    let stringTestAttribute: String
     
-    static func item(in store: CoreDataStore<TestManageObject1>) async throws -> TestManageObject1 {
-        let item = try await store.item()
-        item.stringTestAttribute = "a-test-string-attribute"
+}
+
+extension LocalTestModel: CoreDataStoreable {
+    
+    enum Error: Swift.Error {
+        case entityNameIsNil
+        case unableToMap
+        case invalidStore
+        case unableToCreateStoreObject
+    }
+    
+    static func entityName() throws -> String {
+        
+        guard let entityName = TestManageObject1().entity.name else {
+            throw Error.entityNameIsNil
+        }
+        
+        return entityName
+    }
+    
+    static func map(storeObject: NSManagedObject) throws -> LocalTestModel {
+        guard let storeObject = storeObject as? TestManageObject1 else {
+            throw Error.unableToMap
+        }
+        
+        return LocalTestModel(stringTestAttribute: storeObject.stringTestAttribute)
+    }
+    
+    func storeObject(for store: any DataStore) async throws -> NSManagedObject {
+        guard let store = store as? CoreDataStore<LocalTestModel> else {
+            throw Error.invalidStore
+        }
+        
+        guard let item = try await store.item() as? TestManageObject1 else {
+            throw Error.unableToCreateStoreObject
+        }
+        
+        item.stringTestAttribute = stringTestAttribute
         return item
     }
 }

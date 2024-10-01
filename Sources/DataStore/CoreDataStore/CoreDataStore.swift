@@ -1,6 +1,10 @@
 import CoreData
 
-public final class CoreDataStore<Item: NSManagedObject>: DataStore {
+public protocol CoreDataStoreable: Storable where StoreObject == NSManagedObject {
+    static func entityName() throws -> String
+}
+
+public final class CoreDataStore<Item: CoreDataStoreable>: DataStore {
     
     private let container: NSPersistentContainer
     private let context: NSManagedObjectContext
@@ -44,6 +48,8 @@ public final class CoreDataStore<Item: NSManagedObject>: DataStore {
     }
 
     public func save(_ item: Item) async throws {
+        let item = try await item.storeObject(for: self)
+        
         try await context.perform { [context] in
             context.insert(item)
             try context.save()
@@ -53,11 +59,11 @@ public final class CoreDataStore<Item: NSManagedObject>: DataStore {
     public func load() async throws -> Item {
         let entityName = try Item.entityName()
 
-        guard let item: Item = try await find(entityName: entityName, in: context) else {
+        guard let item: Item.StoreObject = try await find(entityName: entityName, in: context) else {
             throw StoreError.itemNotFound
         }
         
-        return item
+        return try Item.map(storeObject: item)
     }
     
     public func clear() async throws {
@@ -74,7 +80,7 @@ public final class CoreDataStore<Item: NSManagedObject>: DataStore {
         }
     }
     
-    public func item() async throws -> Item {
+    public func item() async throws -> Item.StoreObject {
         let entityName = try Item.entityName()
         
         try await clear()
@@ -85,7 +91,7 @@ public final class CoreDataStore<Item: NSManagedObject>: DataStore {
                 in: context
             ) else { throw StoreError.unableToCreateItem }
             
-            return Item(entity: entity, insertInto: nil)
+            return Item.StoreObject(entity: entity, insertInto: nil)
         }
     }
     
