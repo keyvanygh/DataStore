@@ -46,13 +46,15 @@ public final class CoreDataStore<Item: CoreDataStoreable>: DataStore {
             throw StoreError.failedToLoadPersistentContainer(error)
         }
     }
-
-    public func save(_ item: Item) async throws {
+    
+    @discardableResult
+    public func save(_ item: Item) async throws -> Item {
         let item = try await item.storeObject(for: self)
         
-        try await context.perform { [context] in
+        return try await context.perform { [context] in
             context.insert(item)
             try context.save()
+            return try Item.map(storeObject: item)
         }
     }
     

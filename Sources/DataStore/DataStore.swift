@@ -10,7 +10,7 @@ public protocol DataStore {
     associatedtype Item: Storable
     
     func load() async throws -> Item
-    func save(_ item: Item) async throws
+    @discardableResult  func save(_ item: Item) async throws -> Item
     func clear() async throws
 }
 
