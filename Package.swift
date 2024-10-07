@@ -22,7 +22,7 @@ let package = Package(
         .target(
             name: "DataStore",
             swiftSettings: [
-                .define("SWIFT_ENABLE_LIBRARY_EVOLUTION")
+                .unsafeFlags(["-enable-library-evolution"])
             ]
         ),
         .testTarget(
